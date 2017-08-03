@@ -30,7 +30,7 @@ class StreamProcessor extends Processor[String, Array[Byte]] {
 
   override def init(context: ProcessorContext): Unit = {
     processor = context
-    context.schedule(10000)
+    context.schedule(100)
     state = context.getStateStore("STORE").asInstanceOf[KVStoreType]
   }
 
@@ -56,10 +56,11 @@ class StreamProcessor extends Processor[String, Array[Byte]] {
   }
 
   override def punctuate(timestamp: Long): Unit = {
+    println(s"punctuate ${state.approximateNumEntries()} ${flushLagSeconds()}")
     if (state.approximateNumEntries() > MAX_FLUSH_MESSAGES) {
       println("Flushing for SIZE")
       flush()
-    } else if (flushLagSeconds > MAX_FLUSH_LAG) {
+    } else if (flushLagSeconds() > MAX_FLUSH_LAG) {
       println("Flushing for TIME")
       flush()
     }
